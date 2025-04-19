@@ -1,2 +1,32 @@
-# nonblocking-performance
-[practice] Spring MVC, WebFlux, Coroutine API Gateway benchmark
+## 1. 목적
+
+- Spring MVC (Servlet 기반 동기 처리), Spring WebFlux (Reactor 기반 논블록킹 처리), Kotlin Coroutine (비동기 프로그래밍 모델)을 사용하여 간단한 API Gateway를 하여 같은 조건에서 처리량(Throughput), 응답시간(Latency), 자원 사용량(CPU/메모리)을 비교한다.
+- 비동기/논블록킹이 실제로 어떤 이점을 가지는지 경험하고, 어떤 상황에서 어떤 방식을 선택해야 하는지 감을 잡는다.
+
+## 2. 시스템 아키텍처
+
+- 외부로부터 HTTP 요청을 받아서, 내부 서비스(목표 API)로 Forward만 하는 단순 Gateway 역할을 한다.
+- API 서버는 10~50ms 랜덤 응답 지연을 걸어 "실제 API 서버" 느낌을 살린다.
+
+## 3. 벤치마크 기준
+
+| 항목                       | 설명                                            |
+|------------------------------|-------------------------------------------------|
+| RPS (Requests per Second)    | 초당 처리 요청 수                               |
+| Average Latency              | 평균 응답 시간 (ms)                             |
+| 95th, 99th Percentile Latency| 최악의 경우 응답 시간 (ms) (상위 5%, 1%)        |
+| CPU 사용률                   | 평균 CPU 사용량 (%)                             |
+| Memory 사용량                | 평균 메모리 사용량 (MB)                         |
+
+## 4. Spring MVC vs WebFlux (10,000 VU) 부하 테스트 결과
+
+| 항목 | Spring MVC (Servlet) | WebFlux (Reactive) |
+|:--|:--|:--|
+| **평균 응답 시간 (avg)** | 241.73ms | **36.26ms** |
+| **중앙값 응답 시간 (med)** | 235.94ms | **31.23ms** |
+| **최대 응답 시간 (max)** | **13.11초** | 447.59ms |
+| **90% 응답 시간 (p90)** | 254.92ms | **48.23ms** |
+| **95% 응답 시간 (p95)** | 260.25ms | **50.26ms** |
+| **총 요청 수 (iterations)** | 195,929회 | **285,617회** |
+| **초당 요청 수 (RPS)** | 3,258 req/s | **9,234 req/s** |
+| **HTTP 실패율** | 0.37% (725/195,929) | **0.00% (완전 성공)** |
