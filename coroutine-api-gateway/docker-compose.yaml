@@ -1,0 +1,27 @@
+services:
+  coroutine-api:
+    build: .
+    container_name: coroutine-api-gateway
+    ports:
+      - "8080:8080"
+    restart: always
+
+  k6:
+    image: grafana/k6:latest
+    container_name: k6-tester
+    volumes:
+      - ./k6:/k6
+    depends_on:
+      - coroutine-api
+    entrypoint: [ "/bin/sh", "-c", "sleep 10 && k6 run /k6/test.js --summary-export=/k6/summary.json" ]
+
+
+  k6-reporter:
+    image: node:20-alpine
+    container_name: k6-reporter
+    working_dir: /k6
+    volumes:
+      - ./k6:/k6
+    depends_on:
+      - k6
+    entrypoint: sh -c "npm install -g k6-reporter && k6-reporter --summary-path=summary.json --output=report.html"
