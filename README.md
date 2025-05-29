@@ -32,3 +32,55 @@
 | 95th, 99th Percentile Latency| 최악의 경우 응답 시간 (ms) (상위 5%, 1%)        |
 | CPU 사용률                   | 평균 CPU 사용량 (%)                             |
 | Memory 사용량                | 평균 메모리 사용량 (MB)                         |
+
+## 4. 최종 결론
+
+
+### 테스트 조건 요약
+
+| 항목               | 값                            |
+|--------------------|-------------------------------|
+| 테스트 툴          | k6 (Docker 기반)              |
+| 테스트 방식        | Gradual Load (단계별 증가)    |
+| 최대 동시 사용자   | 1,200 VUs                     |
+| 테스트 총 시간     | 70초                          |
+| 요청 타겟          | `/api/hello` (10~100ms delay) |
+| 환경               | Docker Compose로 동일한 조건  |
+
+### 테스트 결과 요약
+
+| 아키텍처    | 평균 응답 시간 | P95 응답 시간 | 100ms 미만 비율 | 실패율 | RPS (처리량) |
+|-------------|----------------|----------------|------------------|--------|--------------|
+| Servlet     | 189.36ms       | 308.62ms       | 16.6%            | 0%     | 3,771 req/s  |
+| WebFlux     | 55.53ms        | 95.97ms        | 99.49%           | 0%     | 12,840 req/s |
+| Coroutine   | 55.44ms        | 95.94ms        | 99.58%           | 0%     | 12,862 req/s |
+
+### 테스트 스크립트
+
+```js
+```js
+import http from 'k6/http';
+import { check } from 'k6';
+
+export const options = {
+    stages: [
+        { duration: '10s', target: 400 },
+        { duration: '20s', target: 800 },
+        { duration: '30s', target: 1200 },
+        { duration: '10s', target: 0 },
+    ],
+    thresholds: {
+        http_req_failed: ['rate<0.01'],
+        http_req_duration: ['avg<100', 'p(95)<100'],
+    },
+};
+
+export default function () {
+    const res = http.get('http://<target-host>:8080/api/hello');
+    check(res, {
+        'status is 200': (r) => r.status === 200,
+        'response time < 100ms': (r) => r.timings.duration < 100,
+    });
+}
+```
+```
