@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # mvc-gateway:
+  #   build:
+  #     context: ./servlet-api-gateway
+  #   container_name: mvc-gateway
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - gateway-network
+
+  webflux-gateway:
+    build:
+      context: ./webflux-api-gateway
+    container_name: webflux-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - gateway-network
+
+  k6:
+    image: grafana/k6
+    container_name: k6
+    volumes:
+      - ./k6-script.js:/scripts/k6-script.js
+    entrypoint: ["/bin/sh", "-c", "sleep 5 && k6 run /scripts/k6-script.js"]
+    depends_on:
+      # - mvc-gateway
+      - webflux-gateway
+    networks:
+      - gateway-network
+
+networks:
+  gateway-network:
+    driver: bridge
