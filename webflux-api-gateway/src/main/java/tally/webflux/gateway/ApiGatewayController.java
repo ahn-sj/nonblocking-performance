@@ -1,20 +1,18 @@
 package tally.webflux.gateway;
 
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
-import java.security.SecureRandom;
+import java.time.Duration;
+import java.util.concurrent.ThreadLocalRandom;
 
-@Component
+@RestController
 public class ApiGatewayController {
-    private final SecureRandom random = new SecureRandom();
-
-    public Mono<ServerResponse> getDisplayItem(ServerRequest request) {
-        int delay = 10 + random.nextInt(41);
-
-        return Mono.delay(java.time.Duration.ofMillis(delay))
-                .flatMap(t -> ServerResponse.ok().bodyValue("OK - " + delay + "ms delay"));
+    @GetMapping("/api/hello")
+    public Mono<String> hello() {
+        int delayMs = ThreadLocalRandom.current().nextInt(10, 100);
+        return Mono.delay(Duration.ofMillis(delayMs))
+                .thenReturn("OK - " + delayMs + "ms delay");
     }
 }
