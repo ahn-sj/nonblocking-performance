@@ -58,7 +58,6 @@
 ### 테스트 스크립트
 
 ```js
-```js
 import http from 'k6/http';
 import { check } from 'k6';
 
@@ -82,5 +81,4 @@ export default function () {
         'response time < 100ms': (r) => r.timings.duration < 100,
     });
 }
-```
 ```
